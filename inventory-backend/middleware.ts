@@ -8,17 +8,23 @@ export function middleware(request: NextRequest) {
     const origin = request.headers.get('origin');
     
     // ✅ FIXED: Use environment variable or default to localhost for development
+    // Accept all inventory-frontend-*.vercel.app subdomains for preview deployments
     const allowedOrigins = process.env.CORS_ORIGINS 
       ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
       : [
           'http://localhost:5173',
           'http://localhost:5174',
           'http://localhost:3000',
-          'http://10.0.10.141:5173',
-          'https://inventory-frontend-rouge.vercel.app'
+          'http://10.0.10.141:5173'
         ];
+    
+    // Check if origin matches allowed origins or is a Vercel preview deployment
+    const isAllowed = origin && (
+      allowedOrigins.includes(origin) ||
+      origin.match(/^https:\/\/inventory-frontend-[a-z0-9]+-1ikis-projects\.vercel\.app$/)
+    );
 
-    if (origin && allowedOrigins.includes(origin)) {
+    if (isAllowed) {
       response.headers.set('Access-Control-Allow-Origin', origin);
     }
 
