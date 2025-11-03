@@ -1,7 +1,9 @@
 import axios, { type AxiosRequestHeaders, AxiosError } from 'axios';
 import toast from 'react-hot-toast';
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+// ✅ FIXED: Ensure baseURL doesn't have duplicate /api
+// VITE_API_BASE_URL should already include /api (e.g., http://localhost:3001/api)
+const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 export const api = axios.create({
   baseURL,
@@ -130,8 +132,9 @@ export interface ApiResponse<T = any> {
 }
 
 // Auth APIs
+// ✅ FIXED: Remove /api prefix since it's already in baseURL
 export const loginApi = (username: string, password: string) =>
-  api.post<ApiResponse<{ user: any; token: string }>>('/api/auth/login', { username, password });
+  api.post<ApiResponse<{ user: any; token: string }>>('/auth/login', { username, password });
 
 // Master Data APIs - Parts
 export const getPartsApi = (params?: {
@@ -150,7 +153,7 @@ export const getPartsApi = (params?: {
       }
     });
   }
-  return api.get<ApiResponse<any>>(`/api/master/parts?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/master/parts?${searchParams.toString()}`);
 };
 
 export const createPartApi = (payload: {
@@ -168,13 +171,13 @@ export const createPartApi = (payload: {
     dimensions?: string;
     material?: string;
   };
-}) => api.post<ApiResponse<any>>('/api/master/parts', payload);
+}) => api.post<ApiResponse<any>>('/master/parts', payload);
 
 export const updatePartApi = (id: string, payload: any) =>
-  api.put<ApiResponse<any>>('/api/master/parts', { id, ...payload });
+  api.put<ApiResponse<any>>('/master/parts', { id, ...payload });
 
 export const deletePartApi = (id: string) => 
-  api.delete<ApiResponse<any>>('/api/master/parts', { data: { id } });
+  api.delete<ApiResponse<any>>('/master/parts', { data: { id } });
 
 // Master Data APIs - Customers
 export const getCustomersApi = (params?: {
@@ -192,7 +195,7 @@ export const getCustomersApi = (params?: {
       }
     });
   }
-  return api.get<ApiResponse<any>>(`/api/master/customers?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/master/customers?${searchParams.toString()}`);
 };
 
 export const createCustomerApi = (payload: { 
@@ -201,13 +204,13 @@ export const createCustomerApi = (payload: {
   contactPerson?: string; 
   phone?: string; 
   email?: string 
-}) => api.post<ApiResponse<any>>('/api/master/customers', payload);
+}) => api.post<ApiResponse<any>>('/master/customers', payload);
 
 export const updateCustomerApi = (id: string, payload: any) =>
-  api.put<ApiResponse<any>>('/api/master/customers', { id, ...payload });
+  api.put<ApiResponse<any>>('/master/customers', { id, ...payload });
 
 export const deleteCustomerApi = (id: string) => 
-  api.delete<ApiResponse<any>>('/api/master/customers', { data: { id } });
+  api.delete<ApiResponse<any>>('/master/customers', { data: { id } });
 
 // Master Data APIs - Purchase Orders
 export const getPurchaseOrdersApi = (params?: {
@@ -228,7 +231,7 @@ export const getPurchaseOrdersApi = (params?: {
       }
     });
   }
-  return api.get<ApiResponse<any>>(`/api/master/purchase-orders?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/master/purchase-orders?${searchParams.toString()}`);
 };
 
 export const createPurchaseOrderApi = (payload: { 
@@ -238,13 +241,13 @@ export const createPurchaseOrderApi = (payload: {
   totalQuantity: number; 
   deliveryDate?: string; 
   notes?: string 
-}) => api.post<ApiResponse<any>>('/api/master/purchase-orders', payload);
+}) => api.post<ApiResponse<any>>('/master/purchase-orders', payload);
 
 export const updatePurchaseOrderApi = (id: string, payload: any) =>
-  api.put<ApiResponse<any>>('/api/master/purchase-orders', { id, ...payload });
+  api.put<ApiResponse<any>>('/master/purchase-orders', { id, ...payload });
 
 export const deletePurchaseOrderApi = (id: string) => 
-  api.delete<ApiResponse<any>>('/api/master/purchase-orders', { data: { id } });
+  api.delete<ApiResponse<any>>('/master/purchase-orders', { data: { id } });
 
 // Master Data APIs - Suppliers
 export const getSuppliersApi = (params?: {
@@ -263,7 +266,7 @@ export const getSuppliersApi = (params?: {
       }
     });
   }
-  return api.get<ApiResponse<any>>(`/api/master/suppliers?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/master/suppliers?${searchParams.toString()}`);
 };
 
 export const createSupplierApi = (payload: {
@@ -276,13 +279,13 @@ export const createSupplierApi = (payload: {
   website?: string;
   notes?: string;
   status?: 'active' | 'inactive';
-}) => api.post<ApiResponse<any>>('/api/master/suppliers', payload);
+}) => api.post<ApiResponse<any>>('/master/suppliers', payload);
 
 export const updateSupplierApi = (id: string, payload: any) =>
-  api.put<ApiResponse<any>>('/api/master/suppliers', { id, ...payload });
+  api.put<ApiResponse<any>>('/master/suppliers', { id, ...payload });
 
 export const deleteSupplierApi = (id: string) => 
-  api.delete<ApiResponse<any>>('/api/master/suppliers', { data: { id } });
+  api.delete<ApiResponse<any>>('/master/suppliers', { data: { id } });
 
 // Inventory APIs
 export const getItemsApi = (params?: {
@@ -305,7 +308,7 @@ export const getItemsApi = (params?: {
       }
     });
   }
-  return api.get<ApiResponse<any>>(`/api/inventory/items?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/inventory/items?${searchParams.toString()}`);
 };
 
 export const createItemApi = (payload: {
@@ -321,15 +324,15 @@ export const createItemApi = (payload: {
     rack?: string;
     position?: string;
   };
-}) => api.post<ApiResponse<any>>('/api/inventory/items', payload);
+}) => api.post<ApiResponse<any>>('/inventory/items', payload);
 
 // Updated Scan Out API to use POST method as per backend
 export const scanOutApi = (payload: { qrCodeData: string; notes?: string }) => 
-  api.post<ApiResponse<any>>('/api/inventory/items/scan-out', payload);
+  api.post<ApiResponse<any>>('/inventory/items/scan-out', payload);
 
 // New API for scan out preview
 export const getScanOutPreviewApi = (qrCodeData: string) =>
-  api.get<ApiResponse<any>>(`/api/inventory/items/scan-out?qrCodeData=${encodeURIComponent(qrCodeData)}`);
+  api.get<ApiResponse<any>>(`/inventory/items/scan-out?qrCodeData=${encodeURIComponent(qrCodeData)}`);
 
 // Delete Requests APIs
 export const getDeleteRequestsApi = (params?: {
@@ -347,21 +350,21 @@ export const getDeleteRequestsApi = (params?: {
       }
     });
   }
-  return api.get<ApiResponse<any>>(`/api/inventory/items/delete-requests?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/inventory/items/delete-requests?${searchParams.toString()}`);
 };
 
 export const requestDeleteItemApi = (payload: { 
   id?: string; 
   uniqueId?: string; 
   reason: string 
-}) => api.post<ApiResponse<any>>('/api/inventory/items/delete-requests', payload);
+}) => api.post<ApiResponse<any>>('/inventory/items/delete-requests', payload);
 
 export const decideDeleteRequestApi = (payload: { 
   id?: string; 
   uniqueId?: string; 
   action: 'approve' | 'reject';
   notes?: string;
-}) => api.put<ApiResponse<any>>('/api/inventory/items/delete-requests', payload);
+}) => api.put<ApiResponse<any>>('/inventory/items/delete-requests', payload);
 
 // Enhanced Reports APIs
 export const getReportsApi = (params: {
@@ -382,7 +385,7 @@ export const getReportsApi = (params: {
       searchParams.append(key, String(value));
     }
   });
-  return api.get<ApiResponse<any>>(`/api/reports?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/reports?${searchParams.toString()}`);
 };
 
 // Legacy support for old report APIs
@@ -411,7 +414,7 @@ export const exportReportsApi = (type: 'summary' | 'detail', params?: any) => {
       }
     });
   }
-  return api.get(`/api/reports/export?type=${type}&${searchParams.toString()}`, { 
+  return api.get(`/reports/export?type=${type}&${searchParams.toString()}`, { 
     responseType: 'blob' 
   });
 };
@@ -437,14 +440,14 @@ export const getAuditLogsApi = (page = 1, limit = 50, filters?: {
     });
   }
   
-  return api.get<ApiResponse<any>>(`/api/audit?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/audit?${searchParams.toString()}`);
 };
 
 // Dashboard APIs
-export const getDashboardApi = () => api.get<ApiResponse<any>>('/api/dashboard');
+export const getDashboardApi = () => api.get<ApiResponse<any>>('/dashboard');
 
 // Health Check API
-export const getHealthApi = () => api.get<ApiResponse<any>>('/api/health');
+export const getHealthApi = () => api.get<ApiResponse<any>>('/health');
 
 // Scan In Reports APIs (Updated for new report system)
 export const getScanInReportsApi = (params?: {
@@ -466,19 +469,19 @@ export const getScanInReportsApi = (params?: {
       }
     });
   }
-  return api.get<ApiResponse<any>>(`/api/reports/scan-in?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/reports/scan-in?${searchParams.toString()}`);
 };
 
 export const createScanInReportApi = (payload: {
   itemId: string;
   notes?: string;
-}) => api.post<ApiResponse<any>>('/api/reports/scan-in', payload);
+}) => api.post<ApiResponse<any>>('/reports/scan-in', payload);
 
 // Bulk Operations APIs
 export const bulkImportApi = (payload: {
   type: 'customers' | 'parts' | 'purchase-orders' | 'inventory-items';
   data: any[];
-}) => api.post<ApiResponse<any>>('/api/inventory/export-import', payload);
+}) => api.post<ApiResponse<any>>('/inventory/export-import', payload);
 
 export const bulkExportApi = (type: string, params?: any) => {
   const searchParams = new URLSearchParams();
@@ -489,7 +492,7 @@ export const bulkExportApi = (type: string, params?: any) => {
       }
     });
   }
-  return api.get(`/api/inventory/export-import?type=${type}&${searchParams.toString()}`, {
+  return api.get(`/inventory/export-import?type=${type}&${searchParams.toString()}`, {
     responseType: 'blob'
   });
 };
@@ -507,7 +510,7 @@ export const searchApi = (params: {
       searchParams.append(key, String(value));
     }
   });
-  return api.get<ApiResponse<any>>(`/api/search?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/search?${searchParams.toString()}`);
 };
 
 // Utility functions
@@ -537,7 +540,7 @@ export const checkApiStatus = async (): Promise<boolean> => {
 
 // Enhanced Scan In API
 export const scanInApi = (payload: { itemId: string; notes?: string }) => 
-  api.post<ApiResponse<any>>('/api/reports/scan-in', payload);
+  api.post<ApiResponse<any>>('/reports/scan-in', payload);
 
 // ============= STAFF CUSTOMER APIS =============
 // Staff-specific Customer APIs with soft delete functionality
@@ -556,7 +559,7 @@ export const getStaffCustomersApi = (params?: {
       }
     });
   }
-  return api.get<ApiResponse<any>>(`/api/staff/customers?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/staff/customers?${searchParams.toString()}`);
 };
 
 export const createStaffCustomerApi = (payload: { 
@@ -565,13 +568,13 @@ export const createStaffCustomerApi = (payload: {
   contactPerson?: string; 
   phone?: string; 
   email?: string 
-}) => api.post<ApiResponse<any>>('/api/staff/customers', payload);
+}) => api.post<ApiResponse<any>>('/staff/customers', payload);
 
 export const updateStaffCustomerApi = (id: string, payload: any) =>
-  api.put<ApiResponse<any>>('/api/staff/customers', { id, ...payload });
+  api.put<ApiResponse<any>>('/staff/customers', { id, ...payload });
 
 export const deleteStaffCustomerApi = (id: string, reason: string) => 
-  api.delete<ApiResponse<any>>('/api/staff/customers', { data: { id, reason } });
+  api.delete<ApiResponse<any>>('/staff/customers', { data: { id, reason } });
 
 // Staff Customer Parts APIs
 export const getCustomerPartsApi = (params: {
@@ -586,14 +589,14 @@ export const getCustomerPartsApi = (params: {
       searchParams.append(key, String(value));
     }
   });
-  return api.get<ApiResponse<any>>(`/api/staff/customers/parts?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/staff/customers/parts?${searchParams.toString()}`);
 };
 
 export const updateCustomerPartApi = (id: string, payload: any) =>
-  api.put<ApiResponse<any>>('/api/staff/customers/parts', { id, ...payload });
+  api.put<ApiResponse<any>>('/staff/customers/parts', { id, ...payload });
 
 export const deleteCustomerPartApi = (id: string) => 
-  api.delete<ApiResponse<any>>('/api/staff/customers/parts', { data: { id } });
+  api.delete<ApiResponse<any>>('/staff/customers/parts', { data: { id } });
 
 // Customer Delete Requests APIs (for admin/manager/direktur approval)
 export const getCustomerDeleteRequestsApi = (params?: {
@@ -611,11 +614,11 @@ export const getCustomerDeleteRequestsApi = (params?: {
       }
     });
   }
-  return api.get<ApiResponse<any>>(`/api/staff/customers/delete-requests?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/staff/customers/delete-requests?${searchParams.toString()}`);
 };
 
 export const approveCustomerDeleteApi = (id: string, action: 'approve' | 'reject', notes?: string) =>
-  api.put<ApiResponse<any>>('/api/staff/customers/delete-requests', { id, action, notes });
+  api.put<ApiResponse<any>>('/staff/customers/delete-requests', { id, action, notes });
 
 // Create new part for customer (Staff)
 export const createCustomerPartApi = (payload: {
@@ -629,7 +632,7 @@ export const createCustomerPartApi = (payload: {
     partNumber?: string;
     description?: string;
   };
-}) => api.post<ApiResponse<any>>('/api/staff/customers/parts', payload);
+}) => api.post<ApiResponse<any>>('/staff/customers/parts', payload);
 
 // ============= STAFF CUSTOMER PURCHASE ORDERS APIS =============
 // Staff Customer Purchase Orders APIs
@@ -645,7 +648,7 @@ export const getCustomerPurchaseOrdersApi = (params: {
       searchParams.append(key, String(value));
     }
   });
-  return api.get<ApiResponse<any>>(`/api/staff/customers/purchase-orders?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/staff/customers/purchase-orders?${searchParams.toString()}`);
 };
 
 export const createCustomerPurchaseOrderApi = (payload: {
@@ -654,13 +657,13 @@ export const createCustomerPurchaseOrderApi = (payload: {
   poNumber: string;
   quantity: number;
   description?: string;
-}) => api.post<ApiResponse<any>>('/api/staff/customers/purchase-orders', payload);
+}) => api.post<ApiResponse<any>>('/staff/customers/purchase-orders', payload);
 
 export const updateCustomerPurchaseOrderApi = (id: string, payload: any) =>
-  api.put<ApiResponse<any>>('/api/staff/customers/purchase-orders', { id, ...payload });
+  api.put<ApiResponse<any>>('/staff/customers/purchase-orders', { id, ...payload });
 
 export const deleteCustomerPurchaseOrderApi = (id: string) => 
-  api.delete<ApiResponse<any>>('/api/staff/customers/purchase-orders', { data: { id } });
+  api.delete<ApiResponse<any>>('/staff/customers/purchase-orders', { data: { id } });
 
 // ============= PO NUMBER AUTO-SYNC APIS =============
 /**
@@ -678,7 +681,7 @@ export const syncPONumbersApi = () =>
       status: 'synced' | 'already-synced' | 'part-not-found' | 'error';
       error?: string;
     }>;
-  }>>('/api/master/parts/sync-po');
+  }>>('/master/parts/sync-po');
 
 /**
  * Get preview of what will be synced
@@ -696,7 +699,7 @@ export const getSyncPOPreviewApi = () =>
       needsSync: boolean;
       status: string;
     }>;
-  }>>('/api/master/parts/sync-po');
+  }>>('/master/parts/sync-po');
 
 /**
  * Fetch all PO Numbers from Purchase Orders
@@ -716,5 +719,5 @@ export const fetchPONumbersApi = (params?: {
       }
     });
   }
-  return api.get<ApiResponse<any>>(`/api/master/purchase-orders?${searchParams.toString()}`);
+  return api.get<ApiResponse<any>>(`/master/purchase-orders?${searchParams.toString()}`);
 };
