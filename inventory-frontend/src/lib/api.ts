@@ -4,8 +4,22 @@ import toast from 'react-hot-toast';
 // ✅ CRITICAL FIX: baseURL should NOT include /api
 // VITE_API_BASE_URL should be just the domain (e.g., http://localhost:3001)
 // The /api prefix is added automatically in baseURL construction below
-const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
+// 🔥 TEMPORARY HARDCODE FIX for Vercel deployment
+// TODO: Remove after setting VITE_API_BASE_URL in Vercel Dashboard
+const apiUrl = import.meta.env.VITE_API_BASE_URL 
+  || (import.meta.env.PROD 
+      ? 'https://inventory-backend-ev6m50tkl-1ikis-projects.vercel.app'
+      : 'http://localhost:3001');
+
 const baseURL = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`;
+
+console.log('🔧 API Configuration:', { 
+  env: import.meta.env.VITE_API_BASE_URL, 
+  apiUrl, 
+  baseURL,
+  mode: import.meta.env.MODE 
+});
 
 export const api = axios.create({
   baseURL,
