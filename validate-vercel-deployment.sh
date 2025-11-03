@@ -42,6 +42,14 @@ print_status() {
 # Check if we're in the right directory
 if [ ! -d "inventory-backend" ] || [ ! -d "inventory-frontend" ]; then
     print_status "ERROR" "Must be run from repository root directory"
+    echo ""
+    echo "Current directory: $(pwd)"
+    echo "Expected directory structure:"
+    echo "  $(pwd)/"
+    echo "  ├── inventory-backend/"
+    echo "  └── inventory-frontend/"
+    echo ""
+    echo "Please cd to the repository root directory and try again."
     exit 1
 fi
 

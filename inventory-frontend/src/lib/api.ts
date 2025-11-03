@@ -10,8 +10,9 @@ import toast from 'react-hot-toast';
 
 /**
  * Get API URL based on environment
- * - Production: Must be set in Vercel Dashboard (logs error if missing)
+ * - Production: Must be set in Vercel Dashboard (throws error if missing)
  * - Development: Falls back to localhost
+ * @throws Error if VITE_API_BASE_URL is not set in production
  */
 function getApiUrl(): string {
   const envApiUrl = import.meta.env.VITE_API_BASE_URL;
@@ -21,9 +22,14 @@ function getApiUrl(): string {
   }
   
   if (import.meta.env.PROD) {
-    console.error('❌ CRITICAL ERROR: VITE_API_BASE_URL is not set in production environment!');
-    console.error('Please set VITE_API_BASE_URL in Vercel Dashboard Environment Variables');
-    return '';
+    const errorMsg = '❌ CRITICAL ERROR: VITE_API_BASE_URL is not set in production environment!\n' +
+                     'Please set VITE_API_BASE_URL in Vercel Dashboard Environment Variables.\n' +
+                     'See START_HERE.md or QUICK_VERCEL_SETUP.md for instructions.';
+    console.error(errorMsg);
+    // Show error toast to user
+    toast.error('Configuration Error: API URL not set. Please contact administrator.');
+    // Throw error to make the failure explicit
+    throw new Error('VITE_API_BASE_URL environment variable is required in production');
   }
   
   return 'http://localhost:3001';
@@ -31,11 +37,10 @@ function getApiUrl(): string {
 
 /**
  * Build API base URL with /api suffix if not already present
+ * @param apiUrl - Base URL for the API
+ * @returns Complete API base URL with /api suffix
  */
 function buildApiBaseUrl(apiUrl: string): string {
-  if (!apiUrl) {
-    return '/api';
-  }
   return apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`;
 }
 
