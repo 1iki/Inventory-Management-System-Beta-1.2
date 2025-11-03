@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate PWA Icons</title></head>
+<body>
+<canvas id="canvas192" width="192" height="192"></canvas>
+<canvas id="canvas512" width="512" height="512"></canvas>
+<script>
+function generateIcon(canvas, size, text) {
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#2563eb';
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `bold ${size/3}px Arial`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, size/2, size/2);
+}
+generateIcon(document.getElementById('canvas192'), 192, 'IMS');
+generateIcon(document.getElementById('canvas512'), 512, 'IMS');
+
+// Download
+setTimeout(() => {
+  ['192', '512'].forEach(size => {
+    const canvas = document.getElementById('canvas' + size);
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'pwa-' + size + 'x' + size + '.png';
+      a.click();
+    });
+  });
+}, 1000);
+</script>
+</body>
+</html>
