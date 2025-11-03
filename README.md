@@ -2,6 +2,19 @@
 
 Sistem manajemen inventory berbasis QR Code dengan teknologi modern.
 
+## ☁️ Vercel Deployment
+
+**Frontend tidak terkoneksi ke backend di Vercel?** 
+
+✅ **Sudah diperbaiki!** Ikuti panduan setup:
+- 📖 **Quick Setup (5 menit)**: [QUICK_VERCEL_SETUP.md](QUICK_VERCEL_SETUP.md)
+- 📚 **Complete Guide**: [VERCEL_CONNECTION_FIX.md](VERCEL_CONNECTION_FIX.md)
+- 🔍 **Validation**: Run `./validate-vercel-deployment.sh`
+
+**TL;DR:** Set environment variables di Vercel Dashboard lalu redeploy kedua project.
+
+---
+
 ## 🚀 Fitur Utama
 
 - **QR Code Scanning**: Scan in/out inventory dengan QR code

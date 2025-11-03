@@ -5,14 +5,47 @@ import toast from 'react-hot-toast';
 // VITE_API_BASE_URL should be just the domain (e.g., http://localhost:3001)
 // The /api prefix is added automatically in baseURL construction below
 
-// 🔥 TEMPORARY HARDCODE FIX for Vercel deployment
-// TODO: Remove after setting VITE_API_BASE_URL in Vercel Dashboard
-const apiUrl = import.meta.env.VITE_API_BASE_URL 
-  || (import.meta.env.PROD 
-      ? 'https://inventory-backend-ev6m50tkl-1ikis-projects.vercel.app'
-      : 'http://localhost:3001');
+// ⚠️ IMPORTANT: VITE_API_BASE_URL must be set in Vercel Dashboard Environment Variables
+// For production deployments on Vercel, do NOT rely on hardcoded fallbacks
 
-const baseURL = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`;
+/**
+ * Get API URL based on environment
+ * - Production: Must be set in Vercel Dashboard (throws error if missing)
+ * - Development: Falls back to localhost
+ * @throws Error if VITE_API_BASE_URL is not set in production
+ */
+function getApiUrl(): string {
+  const envApiUrl = import.meta.env.VITE_API_BASE_URL;
+  
+  if (envApiUrl) {
+    return envApiUrl;
+  }
+  
+  if (import.meta.env.PROD) {
+    const errorMsg = '❌ CRITICAL ERROR: VITE_API_BASE_URL is not set in production environment!\n' +
+                     'Please set VITE_API_BASE_URL in Vercel Dashboard Environment Variables.\n' +
+                     'See START_HERE.md or QUICK_VERCEL_SETUP.md for instructions.';
+    console.error(errorMsg);
+    // Show error toast to user
+    toast.error('Configuration Error: API URL not set. Please contact administrator.');
+    // Throw error to make the failure explicit
+    throw new Error('VITE_API_BASE_URL environment variable is required in production');
+  }
+  
+  return 'http://localhost:3001';
+}
+
+/**
+ * Build API base URL with /api suffix if not already present
+ * @param apiUrl - Base URL for the API
+ * @returns Complete API base URL with /api suffix
+ */
+function buildApiBaseUrl(apiUrl: string): string {
+  return apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`;
+}
+
+const apiUrl = getApiUrl();
+const baseURL = buildApiBaseUrl(apiUrl);
 
 console.log('🔧 API Configuration:', { 
   env: import.meta.env.VITE_API_BASE_URL, 
