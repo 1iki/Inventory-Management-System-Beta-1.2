@@ -5,14 +5,19 @@ import toast from 'react-hot-toast';
 // VITE_API_BASE_URL should be just the domain (e.g., http://localhost:3001)
 // The /api prefix is added automatically in baseURL construction below
 
-// 🔥 TEMPORARY HARDCODE FIX for Vercel deployment
-// TODO: Remove after setting VITE_API_BASE_URL in Vercel Dashboard
+// ⚠️ IMPORTANT: VITE_API_BASE_URL must be set in Vercel Dashboard Environment Variables
+// For production deployments on Vercel, do NOT rely on hardcoded fallbacks
 const apiUrl = import.meta.env.VITE_API_BASE_URL 
   || (import.meta.env.PROD 
-      ? 'https://inventory-backend-ev6m50tkl-1ikis-projects.vercel.app'
-      : 'http://localhost:3001');
+      ? ''  // Empty in production - MUST be set in Vercel Dashboard
+      : 'http://localhost:3001');  // Development fallback only
 
-const baseURL = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`;
+if (import.meta.env.PROD && !apiUrl) {
+  console.error('❌ CRITICAL ERROR: VITE_API_BASE_URL is not set in production environment!');
+  console.error('Please set VITE_API_BASE_URL in Vercel Dashboard Environment Variables');
+}
+
+const baseURL = apiUrl ? (apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`) : '/api';
 
 console.log('🔧 API Configuration:', { 
   env: import.meta.env.VITE_API_BASE_URL, 
