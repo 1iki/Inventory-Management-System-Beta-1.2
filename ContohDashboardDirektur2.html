@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-g">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototipe Fungsional - Sistem Pelacakan Inventaris</title>
+    <!-- Memuat Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat Font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- BARU: Memuat Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Tambah: html5-qrcode untuk kamera -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
+    <style>
+        /* Menggunakan font Inter sebagai default */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* ... (style lain tetap sama) ... */
+        .content-page {
+            display: none;
+        }
+        .content-page.active {
+            display: block;
+        }
+        .nav-link.active {
+            background-color: #1e40af; /* bg-blue-800 */
+            color: white;
+        }
+        .modal-backdrop {
+            display: none;
+        }
+        .modal-backdrop.active {
+            display: flex;
+        }
+        #qr-reader-container {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="flex h-screen">
+        <!-- ==== SIDEBAR NAVIGASI ==== -->
+        <nav class="w-64 bg-blue-950 text-white flex flex-col p-4 space-y-2">
+            <!-- ... (Konten HTML sidebar tetap sama) ... -->
+            <div class="text-2xl font-bold mb-6 text-center">
+                <img src="https://lh3.google.com/u/0/d/1Xdh4lhkTM3gdHa4LyQQnX6DQxftkrJiE=w1920-h948-iv1?auditContext=prefetch" class="a-b-ta-Ua" alt="Displaying PT USBERSA MITRA LOGAM (1).png" aria-hidden="true">
+            </div>
+
+            <!-- Link Navigasi -->
+            <span class="text-xs font-semibold text-gray-400 uppercase px-3">Operasi (Staff)</span>
+            <a href="#" class="nav-link active" data-page="page-dashboard">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                Dashboard
+            </a>
+            <a href="#" class="nav-link" data-page="page-scan-in">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Scan IN (Create)
+            </a>
+            <a href="#" class="nav-link" data-page="page-scan-out">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                Scan OUT
+            </a>
+
+            <!-- Hanya Manager & Admin -->
+            <span class="text-xs font-semibold text-gray-400 uppercase px-3 pt-4">Manajemen</span>
+            <a href="#" class="nav-link" data-page="page-reports">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V7a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2z" /></svg>
+                Laporan
+            </a>
+            <a href="#" class="nav-link" data-page="page-delete-requests">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                Persetujuan Hapus
+            </a>
+
+            <!-- Hanya Admin -->
+            <span class="text-xs font-semibold text-gray-400 uppercase px-3 pt-4">Administrasi</span>
+            <a href="#" class="nav-link" data-page="page-master-data">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                Master Data
+            </a>
+            <a href="#" class="nav-link" data-page="page-audit-log">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                Audit Log
+            </a>
+
+            <!-- Footer Sidebar -->
+            <div class="mt-auto">
+                <div class="border-t border-blue-800 my-4"></div>
+                <div class="flex items-center p-2">
+                    <img src="https://placehold.co/40x40/e0e0e0/333?text=BB" class="rounded-full" alt="Avatar"> <!-- Avatar diubah -->
+                    <div class="ml-3" id="user-profile">
+                        <!-- Diisi oleh JS -->
+                    </div>
+                </div>
+                <button id="logout-button" class="w-full flex items-center justify-center bg-red-600 hover:bg-red-700 rounded-lg p-2 mt-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                    Logout
+                </button>
+            </div>
+        </nav>
+
+        <!-- ==== AREA KONTEN UTAMA ==== -->
+        <main class="flex-1 p-6 overflow-auto">
+
+            <!-- === Halaman Dashboard (Default) === -->
+            <div id="page-dashboard" class="content-page active">
+                <h1 class="text-3xl font-bold text-gray-800">Dashboard</h1>
+                <p class="text-gray-600 mb-6" id="dashboard-welcome">Selamat datang!</p>
+                <!-- Statistik Utama -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-700">Item Masuk (Hari Ini)</h3>
+                        <p class="text-4xl font-bold text-blue-600" id="stat-in-today">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-700">Item Keluar (Hari Ini)</h3>
+                        <p class="text-4xl font-bold text-green-600" id="stat-out-today">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-700">Total Stok Gudang (IN)</h3>
+                        <p class="text-4xl font-bold text-yellow-600" id="stat-stock-total">0</p>
+                    </div>
+                </div>
+                
+                <!-- BARU: Kontainer Grafik -->
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mt-6">
+                    <!-- Grafik Batang -->
+                    <div class="lg:col-span-3 bg-white p-6 rounded-lg shadow-md">
+                         <h3 class="text-lg font-semibold text-gray-700 mb-4">Aktivitas Bulanan (Dummy)</h3>
+                         <canvas id="chart-bar-monthly"></canvas>
+                    </div>
+                    <!-- Grafik Pie/Donut -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4">Stok per Customer</h3>
+                        <canvas id="chart-pie-customer"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- === Halaman Scan IN (Create) === -->
+            <div id="page-scan-in" class="content-page">
+                <!-- ... (Konten HTML tetap sama) ... -->
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Scan IN / Buat Item Baru</h1>
+                <div class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
+                    <form id="form-scan-in" class="space-y-4">
+                        <div>
+                            <label for="scanin-partId" class="block text-sm font-medium text-gray-700">Pilih Part (dari Master Data `parts`)</label>
+                            <select id="scanin-partId" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                <!-- Diisi oleh JS -->
+                            </select>
+                        </div>
+                        <div>
+                            <label for="scanin-poId" class="block text-sm font-medium text-gray-700">Pilih PO (dari Master Data `purchaseOrders`)</label>
+                            <select id="scanin-poId" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                <!-- Diisi oleh JS -->
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="scanin-quantity" class="block text-sm font-medium text-gray-700">Jumlah (Quantity)</label>
+                                <input type="number" id="scanin-quantity" value="500" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            </div>
+                             <div>
+                                <label for="scanin-lotId" class="block text-sm font-medium text-gray-700">Lot ID</label>
+                                <input type="text" id="scanin-lotId" placeholder="LOT-A-003" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="scanin-copies" class="block text-sm font-medium text-gray-700">Copies (Cetak Label)</label>
+                                <input type="number" id="scanin-copies" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            </div>
+                             <div>
+                                <label for="scanin-gateId" class="block text-sm font-medium text-gray-700">Gate ID</label>
+                                <input type="text" id="scanin-gateId" value="GATE-01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t pt-4">
+                            <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Buat Item & Cetak QR Code
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- === Halaman Scan OUT === -->
+            <div id="page-scan-out" class="content-page">
+                <!-- ... (Konten HTML tetap sama) ... -->
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Scan OUT</h1>
+                <div class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto text-center">
+                    <div id="scanout-offline-banner" class="hidden mb-4 p-3 rounded border border-red-200 bg-red-50 text-red-700">
+                        Anda sedang offline. Sambungkan internet untuk menggunakan kamera dan memproses Scan OUT.
+                    </div>
+                    <p class="text-gray-600 mb-4">Arahkan QR Code ke kamera atau gunakan USB scanner.</p>
+
+                    <!-- Kontrol Kamera -->
+                    <div class="w-full rounded-lg border-2 border-dashed border-gray-300 mb-4 p-4 text-left">
+                        <div class="flex items-end gap-3 flex-wrap">
+                            <div class="flex-1 min-w-[220px]">
+                                <label class="block text-xs text-gray-600 mb-1">Pilih Kamera</label>
+                                <select id="camera-select" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="">Mencari perangkat kamera...</option>
+                                </select>
+                            </div>
+                            <button id="btn-start-scan" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow">
+                                Mulai Scan QR Code
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Area Kamera -->
+                    <div id="qr-reader-container" class="relative">
+                        <div id="qr-reader" class="w-full"></div>
+                        <button id="btn-stop-scan" class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-full shadow-lg" title="Stop Scanner">✕</button>
+                    </div>
+                    
+                    <form id="form-scan-out" class="mt-4">
+                        <label for="scanout-uniqueId" class="text-sm font-medium text-gray-700">Ketik ID unik:</label>
+                        <input type="text" id="scanout-uniqueId" placeholder="LP-28102025-0000002" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                        <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 mt-4">
+                            Proses Scan OUT
+                        </button>
+                    </form>
+                    
+                    <div id="scan-feedback" class="mt-4 p-4 rounded-lg hidden text-left"></div>
+                </div>
+            </div>
+            
+            <!-- === Halaman Laporan (Detail & Ringkasan) === -->
+            <div id="page-reports" class="content-page">
+                <!-- ... (Konten HTML tetap sama) ... -->
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Laporan</h1>
+                <div class="mb-4 border-b border-gray-200">
+                    <nav class="flex space-x-4" aria-label="Tabs">
+                        <a href="#" class="report-tab active" data-report="report-summary">Ringkasan PO</a>
+                        <a href="#" class="report-tab" data-report="report-detail">Detail Transaksi</a>
+                    </nav>
+                </div>
+
+                <div id="report-summary" class="report-content active">
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-4">Laporan Ringkasan PO</h2>
+                    <button class="mb-4 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg shadow">
+                        Export ke Excel
+                    </button>
+                    <div class="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Part</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Kirim</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SISA PO</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-summary-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Diisi oleh JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="report-detail" class="report-content">
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-4">Laporan Detail Transaksi</h2>
+                    <button class="mb-4 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg shadow">
+                        Export ke Excel
+                    </button>
+                    <div class="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">NAMA PT</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">NAMA ITEM</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">JUMLAH</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">NO PO</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">UPDATE DATETIME</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID Unik</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-detail-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Diisi oleh JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- === Halaman Persetujuan Hapus === -->
+            <div id="page-delete-requests" class="content-page">
+                <!-- ... (Konten HTML tetap sama) ... -->
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Persetujuan Hapus</h1>
+                <div id="delete-requests-content" class="bg-white p-6 rounded-lg shadow-md">
+                    <!-- Diisi oleh JS -->
+                </div>
+            </div>
+
+            <!-- === Halaman Master Data === -->
+            <div id="page-master-data" class="content-page">
+                <!-- ... (Konten HTML tetap sama) ... -->
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Master Data</h1>
+                <div class="mb-4 border-b border-gray-200">
+                    <nav class="flex space-x-4" aria-label="Tabs">
+                        <a href="#" class="master-tab active" data-master="master-parts">Master Parts</a>
+                        <a href="#" class="master-tab" data-master="master-customers">Master Customers</a>
+                        <a href="#" class="master-tab" data-master="master-pos">Master POs</a>
+                        <a href="#" class="master-tab" data-master="master-users">Master Users</a>
+                    </nav>
+                </div>
+                
+                <div id="master-parts" class="master-content active">
+                    <h2 class="text-2xl font-semibold text-gray-700 mb-4">Master Parts</h2>
+                    <button id="btn-add-part" class="mb-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow">
+                        + Tambah Part Baru
+                    </button>
+                    <div class="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Item</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Internal Part No</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Supplier ID</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="master-parts-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Diisi oleh JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="master-customers" class="master-content"><h2 class="text-2xl">Master Customers</h2><div id="master-customers-body" class="bg-white p-4 rounded-lg shadow-md">...</div></div>
+                <div id="master-pos" class="master-content"><h2 class="text-2xl">Master POs</h2><div id="master-pos-body" class="bg-white p-4 rounded-lg shadow-md">...</div></div>
+                <div id="master-users" class="master-content"><h2 class="text-2xl">Master Users</h2><div id="master-users-body" class="bg-white p-4 rounded-lg shadow-md">...</div></div>
+            </div>
+            
+            <!-- === Halaman Audit Log === -->
+            <div id="page-audit-log" class="content-page">
+                <!-- ... (Konten HTML tetap sama) ... -->
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">Audit Log</h1>
+                <div class="bg-white p-4 rounded-lg shadow-md overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-log-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Diisi oleh JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+        </main>
+    </div>
+
+    <!-- ==== MODAL ==== -->
+    <!-- ... (Konten HTML Modal tetap sama) ... -->
+    <div id="feedback-modal" class="modal-backdrop fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full items-center justify-center">
+        <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div id="modal-icon-container" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                    <!-- Icon diisi oleh JS -->
+                </div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Judul</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500" id="modal-message">Pesan.</p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="modal-close-button" class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="form-modal" class="modal-backdrop fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full items-center justify-center">
+        <div class="relative mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+             <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="form-modal-title">Form</h3>
+             <div id="form-modal-content">
+                <!-- Konten form diisi oleh JS -->
+             </div>
+        </div>
+    </div>
+
+
+    <script>
+        // =====================================================================
+        // APLIKASI PROTOTIPE SISTEM INVENTARIS
+        // =====================================================================
+        document.addEventListener("DOMContentLoaded", () => {
+
+            // =================================================================
+            // 1. STATE & DATABASE DUMMY
+            // =================================================================
+            
+            // Variabel untuk menyimpan instance chart
+            let customerPieChart = null;
+            let monthlyBarChart = null;
+
+            // Pengguna yang login saat ini (sesuai SKPL)
+            let currentUser = {
+                _id: "u_direktur",
+                username: "direktur_budi",
+                name: "Bapak Budi",
+                role: "direktur", // 'staff', 'manager', 'admin', 'direktur'
+            };
+
+            // Database in-memory (sesuai mongoDbSetup.js)
+            const db = {
+                customers: [
+                    // ... (data customers tetap sama) ...
+                    {
+                        _id: "c_nppi",
+                        name: "PT. NPPI",
+                        address: "Kawasan Industri MM2100",
+                    },
+                    {
+                        _id: "c_panasonic",
+                        name: "PT. PANASONIC",
+                        address: "Kawasan Industri Gobel",
+                    }
+                ],
+                parts: [
+                    // ... (data parts tetap sama) ...
+                    {
+                        _id: "p_disk_brake",
+                        customerId: "c_nppi",
+                        internalPartNo: "PN-DISK-001",
+                        name: "DISK BRAKE K2FP",
+                        description: "Disk brake untuk model K2FP",
+                        supplierInfo: {
+                            id: "NPPI-S01",
+                            partNumber: "DB-K2FP-SUP",
+                            description: "DISK BRAKE K2FP BIRU"
+                        }
+                    },
+                    {
+                        _id: "p_champfer",
+                        customerId: "c_nppi",
+                        internalPartNo: "PN-CHMP-002",
+                        name: "CHAMPFER",
+                        description: "",
+                        supplierInfo: { id: "NPPI-S02", partNumber: "CHMP-SUP", description: "CHAMPFER 10MM" }
+                    },
+                    {
+                        _id: "p_bracket_fan",
+                        customerId: "c_panasonic",
+                        internalPartNo: "PNS-BRKT-001",
+                        name: "BRACKET FAN MOTOR NON MARKING SINGLE (D541250-P4-1)",
+                        description: "",
+                        supplierInfo: { id: "PNS-S01", partNumber: "D541250-P4-1-SUP", description: "BRACKET FAN MOTOR SINGLE" }
+                    }
+                ],
+                purchaseOrders: [
+                    // ... (data purchaseOrders tetap sama) ...
+                    {
+                        _id: "po_nppi_001",
+                        poNumber: "PO-NPPI-10-001",
+                        partId: "p_disk_brake",
+                        customerId: "c_nppi",
+                        totalQuantity: 5000,
+                        status: "open",
+                    },
+                    {
+                        _id: "po_pns_005",
+                        poNumber: "PO-PNS-10-005",
+                        partId: "p_bracket_fan",
+                        customerId: "c_panasonic",
+                        totalQuantity: 10000,
+                        status: "open",
+                    }
+                ],
+                inventoryItems: [
+                    // ... (data inventoryItems tetap sama) ...
+                    {
+                        _id: "i_001",
+                        uniqueId: "LP-28102025-0000001",
+                        partId: "p_disk_brake",
+                        poId: "po_nppi_001",
+                        quantity: 500,
+                        status: "OUT", // Asal 'IN', diubah jadi 'OUT'
+                        qrCodeData: "DB-K2FP-SUP-NPPI-S01-DISK BRAKE K2FP BIRU",
+                        lotId: "LOT-A-001",
+                        copies: 1,
+                        gateId: "GATE-02-OUT",
+                        createdBy: { userId: "u_staff_dian", username: "staff_dian" },
+                        createdAt: new Date("2025-10-28T03:00:00Z"),
+                        updatedAt: new Date("2025-10-29T09:15:00Z"),
+                        history: [
+                            { status: "IN", timestamp: new Date("2025-10-28T03:00:00Z"), userId: "u_staff_dian" },
+                            { status: "OUT", timestamp: new Date("2025-10-29T09:15:00Z"), userId: "u_staff_dian" }
+                        ]
+                    },
+                    {
+                        _id: "i_002",
+                        uniqueId: "LP-28102025-0000002",
+                        partId: "p_disk_brake",
+                        poId: "po_nppi_001",
+                        quantity: 500,
+                        status: "IN",
+                        qrCodeData: "DB-K2FP-SUP-NPPI-S01-DISK BRAKE K2FP BIRU",
+                        lotId: "LOT-A-002",
+                        copies: 1,
+                        gateId: "GATE-01",
+                        createdBy: { userId: "u_staff_dian", username: "staff_dian" },
+                        createdAt: new Date("2025-10-28T03:05:00Z"),
+                        updatedAt: new Date("2025-10-28T03:05:00Z"),
+                        history: [
+                            { status: "IN", timestamp: new Date("2025-10-28T03:05:00Z"), userId: "u_staff_dian" }
+                        ]
+                    },
+                    {
+                        _id: "i_003",
+                        uniqueId: "LP-28102025-0000003",
+                        partId: "p_bracket_fan",
+                        poId: "po_pns_005",
+                        quantity: 1000,
+                        status: "IN",
+                        qrCodeData: "D541250-P4-1-SUP-PNS-S01-BRACKET FAN MOTOR SINGLE",
+                        lotId: "LOT-B-001",
+                        copies: 1,
+                        gateId: "GATE-01",
+                        createdBy: { userId: "u_staff_dian", username: "staff_dian" },
+                        createdAt: new Date("2025-10-28T04:00:00Z"),
+                        updatedAt: new Date("2025-10-28T04:00:00Z"),
+                        history: [
+                            { status: "IN", timestamp: new Date("2025-10-28T04:00:00Z"), userId: "u_staff_dian" }
+                        ]
+                    }
+                ],
+                users: [
+                    { _id: "u_admin", username: "admin_utama", name: "Admin Utama", role: "admin", status: "aktif" },
+                    { _id: "u_manager_agus", username: "manajer_agus", name: "Manajer Agus", role: "manager", status: "aktif" },
+                    { _id: "u_staff_dian", username: "staff_dian", name: "Staff Dian", role: "staff", status: "aktif" },
+                    currentUser // Ini adalah direktur_budi
+                ],
+                auditLogs: [
+                    // ... (data auditLogs tetap sama) ...
+                    {
+                        timestamp: new Date("2025-10-29T09:15:00Z"),
+                        username: "staff_dian",
+                        action: "ITEM_OUT",
+                        details: "Item 'LP-28102025-0000001' di-scan OUT."
+                    },
+                    {
+                        timestamp: new Date("2025-10-28T04:00:00Z"),
+                        username: "staff_dian",
+                        action: "ITEM_CREATED",
+                        details: "Item baru 'LP-28102025-0000003' (BRACKET FAN...) dibuat."
+                    }
+                ]
+            };
+            
+            // =================================================================
+            // 2. UTILITY FUNCTIONS
+            // =================================================================
+
+            // ... (Fungsi utility tetap sama) ...
+            function formatDate(date) {
+                if (!date) return "";
+                const d = new Date(date);
+                return d.toISOString().replace('T', ' ').substring(0, 19);
+            }
+
+            function generateUniqueId() {
+                const now = new Date();
+                const day = String(now.getDate()).padStart(2, '0');
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const year = now.getFullYear();
+                
+                const todayPrefix = `LP-${day}${month}${year}`;
+                const todayItems = db.inventoryItems.filter(item => item.uniqueId.startsWith(todayPrefix));
+                const nextSerial = String(todayItems.length + 1).padStart(7, '0');
+                
+                return `${todayPrefix}-${nextSerial}`;
+            }
+
+            function createAuditLog(action, details) {
+                db.auditLogs.unshift({
+                    timestamp: new Date(),
+                    username: currentUser.username,
+                    action: action,
+                    details: details
+                });
+            }
+
+            function showFeedback(title, message, type = 'success') {
+                const modal = document.getElementById('feedback-modal');
+                const titleEl = document.getElementById('modal-title');
+                const messageEl = document.getElementById('modal-message');
+                const iconContainer = document.getElementById('modal-icon-container');
+                
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                
+                iconContainer.innerHTML = '';
+                if (type === 'success') {
+                    iconContainer.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100';
+                    iconContainer.innerHTML = `<svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+                } else if (type === 'error') {
+                     iconContainer.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100';
+                    iconContainer.innerHTML = `<svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>`;
+                }
+                
+                modal.classList.add('active');
+            }
+            
+            function showFormModal(title, contentHTML) {
+                document.getElementById('form-modal-title').textContent = title;
+                document.getElementById('form-modal-content').innerHTML = contentHTML;
+                document.getElementById('form-modal').classList.add('active');
+            }
+            
+            document.getElementById('modal-close-button').addEventListener('click', () => {
+                document.getElementById('feedback-modal').classList.remove('active');
+            });
+            document.getElementById('form-modal').addEventListener('click', (e) => {
+                 if (e.target.id === 'form-modal' || e.target.id === 'form-modal-close-button') {
+                    document.getElementById('form-modal').classList.remove('active');
+                 }
+            });
+
+
+            // =================================================================
+            // 3. RENDER FUNCTIONS (Update Tampilan)
+            // =================================================================
+
+            function renderAll() {
+                // ... (Panggil semua fungsi render) ...
+                renderDashboard();
+                renderScanInForm();
+                renderReportSummary();
+                renderReportDetail();
+                renderMasterParts();
+                renderMasterCustomers();
+                renderMasterPOs();
+                renderMasterUsers();
+                renderAuditLogs();
+                renderDeleteRequests();
+                renderUserProfile();
+            }
+
+            function renderUserProfile() {
+                // ... (Fungsi ini sudah benar, 'direktur' sudah ditangani) ...
+                const profileEl = document.getElementById('user-profile');
+                profileEl.innerHTML = `
+                    <p class="font-medium">${currentUser.name}</p>
+                    <p class="text-xs text-gray-400">Role: ${currentUser.role}</p>
+                `;
+                document.getElementById('dashboard-welcome').textContent = `Selamat datang, ${currentUser.name}!`;
+
+                const isStaff = currentUser.role === 'staff';
+                const isManager = currentUser.role === 'manager';
+                const isAdmin = currentUser.role === 'admin';
+                const isDirektur = currentUser.role === 'direktur'; 
+
+                document.querySelectorAll('[data-page="page-reports"], [data-page="page-delete-requests"]').forEach(el => {
+                    el.style.display = (isManager || isAdmin || isDirektur) ? 'flex' : 'none'; 
+                });
+                document.querySelectorAll('[data-page="page-master-data"], [data-page="page-audit-log"]').forEach(el => {
+                    el.style.display = (isAdmin || isDirektur) ? 'flex' : 'none'; 
+                });
+            }
+            
+            // Render Statistik Dashboard
+            function renderDashboard() {
+                // 1. Render Statistik Box
+                const today = new Date().setHours(0, 0, 0, 0);
+                
+                const itemsInToday = db.inventoryItems.filter(item => 
+                    new Date(item.createdAt).setHours(0, 0, 0, 0) === today &&
+                    item.history.some(h => h.status === 'IN')
+                ).length;
+                
+                const itemsOutToday = db.inventoryItems.filter(item => 
+                     new Date(item.updatedAt).setHours(0, 0, 0, 0) === today &&
+                     item.status === 'OUT'
+                ).length;
+
+                const totalStock = db.inventoryItems.reduce((sum, item) => {
+                    return item.status === 'IN' ? sum + item.quantity : sum;
+                }, 0);
+
+                document.getElementById('stat-in-today').textContent = itemsInToday;
+                document.getElementById('stat-out-today').textContent = itemsOutToday;
+                document.getElementById('stat-stock-total').textContent = totalStock.toLocaleString('id-ID');
+
+                // 2. Render Pie Chart (Stok per Customer)
+                const customerStock = {};
+                db.customers.forEach(c => { customerStock[c.name] = 0; }); // Inisialisasi
+
+                db.inventoryItems.forEach(item => {
+                    if (item.status === 'IN') {
+                        const part = db.parts.find(p => p._id === item.partId);
+                        if (part) {
+                            const customer = db.customers.find(c => c._id === part.customerId);
+                            if (customer && customerStock.hasOwnProperty(customer.name)) {
+                                customerStock[customer.name] += item.quantity;
+                            }
+                        }
+                    }
+                });
+
+                const pieCtx = document.getElementById('chart-pie-customer').getContext('2d');
+                if (customerPieChart) {
+                    customerPieChart.destroy(); // Hancurkan chart lama
+                }
+                customerPieChart = new Chart(pieCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(customerStock),
+                        datasets: [{
+                            label: 'Total Stok',
+                            data: Object.values(customerStock),
+                            backgroundColor: [
+                                'rgb(59, 130, 246)', // blue-500
+                                'rgb(234, 179, 8)'   // yellow-500
+                            ],
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                            }
+                        }
+                    }
+                });
+
+                // 3. Render Bar Chart (Aktivitas Bulanan - Dummy Data)
+                const barCtx = document.getElementById('chart-bar-monthly').getContext('2d');
+                if (monthlyBarChart) {
+                    monthlyBarChart.destroy(); // Hancurkan chart lama
+                }
+                
+                const labels = ["Juli", "Agustus", "September", "Oktober"];
+                monthlyBarChart = new Chart(barCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Item Masuk',
+                                data: [12500, 19000, 21000, 15000], // Data dummy
+                                backgroundColor: 'rgba(59, 130, 246, 0.7)', // blue-500
+                            },
+                            {
+                                label: 'Item Keluar',
+                                data: [11000, 17500, 20000, 13500], // Data dummy
+                                backgroundColor: 'rgba(34, 197, 94, 0.7)', // green-500
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    // Format angka (cth: 10k)
+                                    callback: function(value) {
+                                        return value / 1000 + 'k';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Render Pilihan (Dropdown) di Form Scan IN
+            function renderScanInForm() {
+                // ... (Fungsi ini tetap sama) ...
+                const partSelect = document.getElementById('scanin-partId');
+                const poSelect = document.getElementById('scanin-poId');
+                partSelect.innerHTML = '<option value="">-- Pilih Part --</option>';
+                poSelect.innerHTML = '<option value="">-- Pilih PO --</option>';
+
+                db.parts.forEach(part => {
+                    partSelect.innerHTML += `<option value="${part._id}">${part.name} (${part.internalPartNo})</option>`;
+                });
+
+                db.purchaseOrders.forEach(po => {
+                    const part = db.parts.find(p => p._id === po.partId);
+                    const totalKirim = db.inventoryItems
+                        .filter(item => item.poId === po._id && item.status === 'OUT')
+                        .reduce((sum, item) => sum + item.quantity, 0);
+                    const sisaPO = po.totalQuantity - totalKirim;
+                    
+                    poSelect.innerHTML += `<option value="${po._id}">${po.poNumber} (${part.name} | Sisa: ${sisaPO})</option>`;
+                });
+            }
+
+            // Render Laporan Ringkasan (Query 2)
+            function renderReportSummary() {
+                // ... (Fungsi ini tetap sama) ...
+                const tbody = document.getElementById('report-summary-body');
+                tbody.innerHTML = '';
+                
+                db.purchaseOrders.forEach((po, index) => {
+                    const part = db.parts.find(p => p._id === po.partId);
+                    const customer = db.customers.find(c => c._id === po.customerId);
+                    
+                    const totalKirim = db.inventoryItems
+                        .filter(item => item.poId === po._id && item.status === 'OUT')
+                        .reduce((sum, item) => sum + item.quantity, 0);
+                        
+                    const sisaPO = po.totalQuantity - totalKirim;
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">${index + 1}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${part ? part.name : 'N/A'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${customer ? customer.name : 'N/A'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap font-medium">${po.totalQuantity.toLocaleString('id-ID')}</td>
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-green-600">${totalKirim.toLocaleString('id-ID')}</td>
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-blue-600">${sisaPO.toLocaleString('id-ID')}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Render Laporan Detail (Query 1)
+            function renderReportDetail() {
+                // ... (Fungsi ini tetap sama) ...
+                const tbody = document.getElementById('report-detail-body');
+                tbody.innerHTML = '';
+                
+                const itemsToRender = [...db.inventoryItems].reverse(); 
+                
+                itemsToRender.forEach(item => {
+                    const part = db.parts.find(p => p._id === item.partId);
+                    const po = db.purchaseOrders.find(p => p._id === item.poId);
+                    const customer = part ? db.customers.find(c => c._id === part.customerId) : null;
+                    
+                    const statusClass = item.status === 'OUT' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800';
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="px-4 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">${item.status}</span></td>
+                            <td class="px-4 py-4">${customer ? customer.name : 'N/A'}</td>
+                            <td class="px-4 py-4">${part ? part.name : 'N/A'}</td>
+                            <td class="px-4 py-4">${item.quantity.toLocaleString('id-ID')}</td>
+                            <td class="px-4 py-4">${po ? po.poNumber : 'N/A'}</td>
+                            <td class="px-4 py-4 text-xs">${formatDate(item.updatedAt)}</td>
+                            <td class="px-4 py-4 text-xs">${item.uniqueId}</td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            // Render Master Data
+            function renderMasterParts() {
+                // ... (Fungsi ini tetap sama) ...
+                const tbody = document.getElementById('master-parts-body');
+                tbody.innerHTML = '';
+                db.parts.forEach(part => {
+                    const customer = db.customers.find(c => c._id === part.customerId);
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="px-4 py-4">${part.name}</td>
+                            <td class="px-4 py-4">${part.internalPartNo}</td>
+                            <td class="px-4 py-4">${customer ? customer.name : 'N/A'}</td>
+                            <td class="px-4 py-4">${part.supplierInfo.id}</td>
+                            <td class="px-4 py-4"><a href="#" class="text-blue-600 hover:text-blue-900">Edit</a></td>
+                        </tr>
+                    `;
+                });
+            }
+            function renderMasterCustomers() {
+                // ... (Fungsi ini tetap sama) ...
+                const container = document.getElementById('master-customers-body');
+                container.innerHTML = db.customers.map(c => `<div class="p-2 border-b">${c.name} (${c.address})</div>`).join('');
+            }
+            function renderMasterPOs() {
+                // ... (Fungsi ini tetap sama) ...
+                 const container = document.getElementById('master-pos-body');
+                container.innerHTML = db.purchaseOrders.map(po => `<div class="p-2 border-b">${po.poNumber} (${po.totalQuantity} pcs)</div>`).join('');
+            }
+            function renderMasterUsers() {
+                // ... (Fungsi ini tetap sama) ...
+                 const container = document.getElementById('master-users-body');
+                container.innerHTML = db.users.map(u => `<div class="p-2 border-b">${u.name} (${u.username}) - Role: ${u.role}</div>`).join('');
+            }
+
+            // Render Audit Log
+            function renderAuditLogs() {
+                // ... (Fungsi ini tetap sama) ...
+                const tbody = document.getElementById('audit-log-body');
+                tbody.innerHTML = '';
+                db.auditLogs.forEach(log => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="px-4 py-4 text-xs">${formatDate(log.timestamp)}</td>
+                            <td class="px-4 py-4">${log.username}</td>
+                            <td class="px-4 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">${log.action}</span></td>
+                            <td class="px-4 py-4 text-sm">${log.details}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Render Halaman Persetujuan Hapus
+            function renderDeleteRequests() {
+                // ... (Fungsi ini tetap sama) ...
+                const container = document.getElementById('delete-requests-content');
+                const requests = db.inventoryItems.filter(item => item.status === 'PENDING_DELETE');
+                
+                if (requests.length === 0) {
+                    container.innerHTML = `<p class="text-gray-600">Tidak ada permintaan penghapusan data saat ini.</p>`;
+                    return;
+                }
+                
+                container.innerHTML = requests.map(item => `
+                    <div class="border rounded-lg p-4 flex items-center justify-between mb-2">
+                        <div>
+                            <p class="font-medium">Item: ${item.uniqueId} (${item.partId})</p>
+                            <p class="text-sm text-gray-500">Diminta oleh: ${item.deleteRequest.username} (Alasan: ${item.deleteRequest.reason})</p>
+                        </div>
+                        <div>
+                            <button class="bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded-lg">Setujui</button>
+                            <button class="bg-red-500 hover:bg-red-600 text-white font-medium py-1 px-3 rounded-lg ml-2">Tolak</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // =================================================================
+            // 4. EVENT HANDLERS (Logika Interaksi)
+            // =================================================================
+
+            // --- Navigasi Halaman Utama ---
+            const navLinks = document.querySelectorAll(".nav-link");
+            const contentPages = document.querySelectorAll(".content-page");
+
+            function showPage(pageId) {
+                contentPages.forEach(page => page.classList.remove("active"));
+                const pageToShow = document.getElementById(pageId);
+                if (pageToShow) {
+                    pageToShow.classList.add("active");
+                }
+                
+                // Panggil render function yang spesifik saat halaman dibuka
+                switch(pageId) {
+                    case 'page-dashboard': renderDashboard(); break; // Pastikan dashboard di-render ulang
+                    // ... (case lain tetap sama) ...
+                    case 'page-scan-in': renderScanInForm(); break;
+                    case 'page-reports': renderReportSummary(); renderReportDetail(); break;
+                    case 'page-master-data': renderMasterParts(); renderMasterCustomers(); renderMasterPOs(); renderMasterUsers(); break;
+                    case 'page-audit-log': renderAuditLogs(); break;
+                    case 'page-delete-requests': renderDeleteRequests(); break;
+                }
+            }
+            
+            navLinks.forEach(link => {
+                link.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    navLinks.forEach(nav => nav.classList.remove("active"));
+                    link.classList.add("active");
+                    const pageId = link.getAttribute("data-page");
+                    showPage(pageId);
+                });
+            });
+
+            // --- Navigasi Tab Internal ---
+            function setupTabNavigation(tabSelector, contentSelector) {
+                // ... (Fungsi ini tetap sama) ...
+                const tabs = document.querySelectorAll(tabSelector);
+                const contents = document.querySelectorAll(contentSelector);
+                tabs.forEach(tab => {
+                    tab.addEventListener("click", e => {
+                        e.preventDefault();
+                        tabs.forEach(t => t.classList.remove("active"));
+                        tab.classList.add("active");
+                        const contentId = tab.getAttribute("data-report") || tab.getAttribute("data-master");
+                        contents.forEach(content => {
+                            content.style.display = content.id === contentId ? "block" : "none";
+                        });
+                    });
+                });
+                contents.forEach((content, index) => {
+                    if(index > 0) content.style.display = "none";
+                });
+                tabs.forEach((tab, index) => {
+                    if(index == 0) tab.classList.add("active");
+                    else tab.classList.remove("active");
+                });
+            }
+            setupTabNavigation(".report-tab", ".report-content");
+            setupTabNavigation(".master-tab", ".master-content");
+
+            // --- Handler Form Scan IN ---
+            document.getElementById('form-scan-in').addEventListener('submit', (e) => {
+                // ... (Fungsi ini tetap sama) ...
+                e.preventDefault();
+                const partId = document.getElementById('scanin-partId').value;
+                const poId = document.getElementById('scanin-poId').value;
+                const quantity = parseInt(document.getElementById('scanin-quantity').value);
+                const lotId = document.getElementById('scanin-lotId').value;
+                const copies = parseInt(document.getElementById('scanin-copies').value);
+                const gateId = document.getElementById('scanin-gateId').value;
+
+                if (!partId || !poId || !quantity || !lotId) {
+                    showFeedback('Gagal', 'Semua field wajib diisi.', 'error');
+                    return;
+                }
+                
+                const part = db.parts.find(p => p._id === partId);
+                const uniqueId = generateUniqueId();
+                const now = new Date();
+                
+                const newItem = {
+                    _id: `i_${Math.random().toString(36).substr(2, 9)}`,
+                    uniqueId: uniqueId,
+                    partId: partId,
+                    poId: poId,
+                    quantity: quantity,
+                    status: "IN",
+                    qrCodeData: `${part.supplierInfo.partNumber}-${part.supplierInfo.id}-${part.supplierInfo.description}`,
+                    lotId: lotId,
+                    copies: copies,
+                    gateId: gateId,
+                    createdBy: { userId: currentUser._id, username: currentUser.username },
+                    createdAt: now,
+                    updatedAt: now,
+                    history: [{ status: "IN", timestamp: now, userId: currentUser._id }]
+                };
+                
+                db.inventoryItems.push(newItem);
+                createAuditLog('ITEM_CREATED', `Item baru '${uniqueId}' (${part.name}) dibuat dengan jumlah ${quantity}.`);
+                
+                showFeedback('Sukses', `Item '${uniqueId}' berhasil dibuat dan disimpan.`);
+                
+                e.target.reset();
+                renderAll();
+            });
+
+            // --- Handler Form Scan OUT ---
+            document.getElementById('form-scan-out').addEventListener('submit', (e) => {
+                // ... (Fungsi ini tetap sama) ...
+                e.preventDefault();
+                const uniqueId = document.getElementById('scanout-uniqueId').value;
+                const feedbackEl = document.getElementById('scan-feedback');
+                
+                const item = db.inventoryItems.find(i => i.uniqueId === uniqueId);
+                
+                if (!item) {
+                    feedbackEl.innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4"><p class="font-bold">GAGAL</p><p>Item dengan ID '${uniqueId}' tidak ditemukan.</p></div>`;
+                    feedbackEl.classList.remove('hidden');
+                    return;
+                }
+                
+                if (item.status === 'OUT') {
+                    feedbackEl.innerHTML = `<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4"><p class="font-bold">PERINGATAN</p><p>Item '${uniqueId}' sudah berstatus OUT.</p></div>`;
+                    feedbackEl.classList.remove('hidden');
+                    return;
+                }
+                
+                item.status = 'OUT';
+                item.updatedAt = new Date();
+                item.history.push({ status: "OUT", timestamp: item.updatedAt, userId: currentUser._id });
+                
+                createAuditLog('ITEM_OUT', `Item '${uniqueId}' di-scan OUT.`);
+                
+                feedbackEl.innerHTML = `<div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4"><p class="font-bold">SUKSES</p><p>Item '${uniqueId}' berhasil di-scan OUT.</p></div>`;
+                feedbackEl.classList.remove('hidden');
+                
+                e.target.reset();
+                renderAll(); 
+            });
+            
+            // --- Handler Tombol "Tambah Part Baru" ---
+            document.getElementById('btn-add-part').addEventListener('click', () => {
+                // ... (Fungsi ini tetap sama) ...
+                let customerOptions = db.customers.map(c => `<option value="${c._id}">${c.name}</option>`).join('');
+                
+                const formHTML = `
+                    <form id="form-add-part" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nama Item</label>
+                            <input type="text" id="part-name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Internal Part No</label>
+                            <input type="text" id="part-internalNo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Customer</label>
+                            <select id="part-customerId" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                                ${customerOptions}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Supplier ID</label>
+                            <input type="text" id="part-supplierId" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                        </div>
+                        <div class="pt-4 flex justify-end space-x-2">
+                             <button type="button" id="form-modal-close-button" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">Batal</button>
+                             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Simpan</button>
+                        </div>
+                    </form>
+                `;
+                showFormModal('Tambah Part Baru', formHTML);
+
+                document.getElementById('form-add-part').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const newPart = {
+                        _id: `p_${Math.random().toString(36).substr(2, 9)}`,
+                        customerId: document.getElementById('part-customerId').value,
+                        internalPartNo: document.getElementById('part-internalNo').value,
+                        name: document.getElementById('part-name').value,
+                        description: "",
+                        supplierInfo: { id: document.getElementById('part-supplierId').value, partNumber: "", description: "" }
+                    };
+                    db.parts.push(newPart);
+                    createAuditLog('MASTER_CREATED', `Part baru '${newPart.name}' dibuat.`);
+                    renderAll();
+                    document.getElementById('form-modal').classList.remove('active');
+                    showFeedback('Sukses', 'Master Part baru berhasil disimpan.', 'success');
+                });
+            });
+
+            // ==========================
+            // Scan OUT Camera Integration
+            // ==========================
+            let html5Qr = null; // instance Html5Qrcode
+            let isScanning = false;
+
+            function updateScanOutOnlineBanner() {
+                const banner = document.getElementById('scanout-offline-banner');
+                if (!navigator.onLine) {
+                    banner.classList.remove('hidden');
+                    document.getElementById('btn-start-scan').setAttribute('disabled', 'true');
+                } else {
+                    banner.classList.add('hidden');
+                    document.getElementById('btn-start-scan').removeAttribute('disabled');
+                }
+            }
+
+            async function initScanOutCameras() {
+                const select = document.getElementById('camera-select');
+                try {
+                    const devices = await Html5Qrcode.getCameras();
+                    select.innerHTML = '';
+                    if (!devices.length) {
+                        select.innerHTML = '<option value="">Kamera tidak ditemukan</option>';
+                        return;
+                    }
+                    devices.forEach((d, idx) => {
+                        const opt = document.createElement('option');
+                        opt.value = d.id;
+                        opt.textContent = d.label || `Kamera ${idx+1}`;
+                        select.appendChild(opt);
+                    });
+                } catch (e) {
+                    // keep default
+                }
+            }
+
+            async function startScanOut() {
+                if (!navigator.onLine) { updateScanOutOnlineBanner(); return; }
+                const container = document.getElementById('qr-reader-container');
+                const select = document.getElementById('camera-select');
+                try {
+                    if (html5Qr) {
+                        await html5Qr.stop();
+                        await html5Qr.clear();
+                        html5Qr = null;
+                    }
+                    html5Qr = new Html5Qrcode('qr-reader');
+                    container.style.display = 'block';
+                    isScanning = true;
+
+                    const cameraConfig = select.value ? { deviceId: { exact: select.value } } : { facingMode: 'environment' };
+                    await html5Qr.start(
+                        cameraConfig,
+                        { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+                        (decodedText) => {
+                            // Isi input dan submit otomatis
+                            const input = document.getElementById('scanout-uniqueId');
+                            input.value = decodedText;
+                            stopScanOut();
+                            document.getElementById('form-scan-out').requestSubmit();
+                        },
+                        () => {}
+                    );
+                } catch (err) {
+                    isScanning = false;
+                    container.style.display = 'none';
+                    const msg = (err && err.message) ? err.message : String(err);
+                    const feedback = document.getElementById('scan-feedback');
+                    feedback.className = 'mt-4 p-4 rounded-lg bg-red-100 border-l-4 border-red-500 text-red-700 text-left';
+                    if (/NotAllowedError|Permission|denied/i.test(msg)) {
+                        feedback.innerHTML = '<p class="font-bold">Izin Kamera Ditolak</p><p>Berikan izin kamera pada browser untuk melanjutkan pemindaian.</p>';
+                    } else if (/NotFoundError|no camera|no input device/i.test(msg)) {
+                        feedback.innerHTML = '<p class="font-bold">Kamera Tidak Ditemukan</p><p>Tidak ada perangkat kamera yang tersedia.</p>';
+                    } else {
+                        feedback.innerHTML = '<p class="font-bold">Gagal Memulai Kamera</p><p>Terjadi kesalahan saat mengakses kamera. Coba ulang atau ganti perangkat.</p>';
+                    }
+                }
+            }
+
+            async function stopScanOut() {
+                const container = document.getElementById('qr-reader-container');
+                try {
+                    if (html5Qr) {
+                        await html5Qr.stop();
+                        await html5Qr.clear();
+                        html5Qr = null;
+                    }
+                } catch {}
+                isScanning = false;
+                container.style.display = 'none';
+            }
+
+            // Attach events
+            document.getElementById('btn-start-scan').addEventListener('click', startScanOut);
+            document.getElementById('btn-stop-scan').addEventListener('click', stopScanOut);
+            window.addEventListener('online', updateScanOutOnlineBanner);
+            window.addEventListener('offline', updateScanOutOnlineBanner);
+
+            // Ensure camera list loads when opening Scan OUT page
+            const originalShowPage = showPage;
+            showPage = function(pageId) {
+                originalShowPage(pageId);
+                if (pageId === 'page-scan-out') {
+                    updateScanOutOnlineBanner();
+                    initScanOutCameras();
+                } else if (isScanning) {
+                    stopScanOut();
+                }
+            }
+
+            // Initial banner state
+            updateScanOutOnlineBanner();
+
+            // =================================================================
+            // 5. INISIALISASI
+            // =================================================================
+            
+            // Render semua data saat pertama kali load
+            renderAll();
+
+            // Tambahkan style untuk tab internal
+            const style = document.createElement('style');
+            style.innerHTML = `
+                /* ... (Style tab tetap sama) ... */
+                .report-tab.active, .master-tab.active {
+                    border-bottom: 2px solid #2563eb; /* blue-600 */
+                    color: #2563eb;
+                }
+                .report-tab, .master-tab {
+                    padding: 8px 4px;
+                    border-bottom: 2px solid transparent;
+                    color: #6b7280; /* gray-500 */
+                }
+                .report-tab:hover, .master-tab:hover {
+                    border-bottom: 2px solid #d1d5db; /* gray-300 */
+                    color: #111827; /* gray-900 */
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+
+</body>
+</html>
+
