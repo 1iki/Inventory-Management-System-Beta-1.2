@@ -23,10 +23,14 @@ Expected: ✅ 17/17 checks passed
 - [ ] Go to **Database Access**
 - [ ] Verify user: `nftiki32_db_user` has read/write access
 
-**Connection String:**
+**Connection String Format:**
 ```
-mongodb+srv://nftiki32_db_user:KtoEnEcTo95RsZnJ@uml21.qozvd62.mongodb.net/inventory_system
+mongodb+srv://[username]:[password]@[cluster].mongodb.net/[database]
 ```
+
+**⚠️ Get your actual connection string from MongoDB Atlas dashboard:**
+- Go to your cluster → Click "Connect" → "Connect your application"
+- Copy the connection string and replace `[username]`, `[password]`, and `[database]` with your values
 
 ---
 

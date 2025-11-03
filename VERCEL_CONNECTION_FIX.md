@@ -24,10 +24,10 @@ Frontend tidak dapat terkoneksi ke backend di Vercel karena konfigurasi environm
 
 | Variable Name | Value | Notes |
 |--------------|-------|-------|
-| `MONGODB_URI` | `mongodb+srv://nftiki32_db_user:KtoEnEcTo95RsZnJ@uml21.qozvd62.mongodb.net/inventory_system` | Connection string ke MongoDB Atlas |
+| `MONGODB_URI` | Get from MongoDB Atlas dashboard | Connection string ke MongoDB Atlas |
 | `JWT_SECRET` | Generate with: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` | Minimum 64 characters |
 | `NODE_ENV` | `production` | Environment mode |
-| `CORS_ORIGINS` | `https://inventory-frontend-rouge.vercel.app` | Your frontend production URL |
+| `CORS_ORIGINS` | Your frontend URL from Vercel dashboard | Your frontend production URL |
 
 **Cara Generate JWT_SECRET:**
 ```bash

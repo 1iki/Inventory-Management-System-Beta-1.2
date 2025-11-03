@@ -11,7 +11,7 @@ Add these 4 variables:
 
 | Variable | Value |
 |----------|-------|
-| `MONGODB_URI` | `mongodb+srv://nftiki32_db_user:KtoEnEcTo95RsZnJ@uml21.qozvd62.mongodb.net/inventory_system` |
+| `MONGODB_URI` | Get from MongoDB Atlas: Cluster → Connect → Connect your application |
 | `JWT_SECRET` | Run: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
 | `CORS_ORIGINS` | Your frontend URL (get from step 2) |
 | `NODE_ENV` | `production` |
