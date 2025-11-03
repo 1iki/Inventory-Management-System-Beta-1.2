@@ -1,9 +1,11 @@
 import axios, { type AxiosRequestHeaders, AxiosError } from 'axios';
 import toast from 'react-hot-toast';
 
-// ✅ FIXED: Ensure baseURL doesn't have duplicate /api
-// VITE_API_BASE_URL should already include /api (e.g., http://localhost:3001/api)
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+// ✅ CRITICAL FIX: baseURL should NOT include /api
+// VITE_API_BASE_URL should be just the domain (e.g., http://localhost:3001)
+// The /api prefix is added automatically in baseURL construction below
+const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const baseURL = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`;
 
 export const api = axios.create({
   baseURL,

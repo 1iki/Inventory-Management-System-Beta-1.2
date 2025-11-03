@@ -91,13 +91,17 @@ export async function corsMiddleware(request: NextRequest): Promise<NextResponse
   const response = NextResponse.next();
   
   const origin = request.headers.get('origin');
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://localhost:5174',
-    'https://yourdomain.com',
-    process.env.FRONTEND_URL
-  ].filter(Boolean);
+  
+  // ✅ FIXED: Use environment variable with proper parsing
+  const allowedOrigins = process.env.CORS_ORIGINS 
+    ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+    : [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'http://localhost:5174',
+        'http://10.0.10.141:5173',
+        'https://inventory-frontend-rouge.vercel.app'
+      ];
 
   // Handle preflight requests
   if (request.method === 'OPTIONS') {

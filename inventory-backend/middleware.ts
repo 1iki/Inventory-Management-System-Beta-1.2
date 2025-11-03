@@ -6,12 +6,17 @@ export function middleware(request: NextRequest) {
     const response = NextResponse.next();
     
     const origin = request.headers.get('origin');
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:5174', // 🆕 Added for Vite dev server alternate port
-      'http://localhost:3000',
-      'https://yourdomain.com' // Add your production domain
-    ];
+    
+    // ✅ FIXED: Use environment variable or default to localhost for development
+    const allowedOrigins = process.env.CORS_ORIGINS 
+      ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+      : [
+          'http://localhost:5173',
+          'http://localhost:5174',
+          'http://localhost:3000',
+          'http://10.0.10.141:5173',
+          'https://inventory-frontend-rouge.vercel.app'
+        ];
 
     if (origin && allowedOrigins.includes(origin)) {
       response.headers.set('Access-Control-Allow-Origin', origin);
