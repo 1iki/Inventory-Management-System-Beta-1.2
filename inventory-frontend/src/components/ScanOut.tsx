@@ -150,14 +150,17 @@ const ScanOut: React.FC = () => {
       setCanTorch(false);
       setTorchOn(false);
 
-      // ✅ FIX 1: Create scanner instance
-      html5QrRef.current = new Html5Qrcode('qr-reader');
-
-      // ✅ FIX 2: Set isScanning BEFORE starting camera (for UI feedback)
+      // ✅ FIX 1: Set isScanning to trigger DOM render
       setIsScanning(true);
 
-      // ✅ FIX 3: Add toast to inform user
+      // ✅ FIX 2: Add toast to inform user
       toast.loading('Memulai kamera...', { id: 'camera-loading' });
+
+      // ✅ FIX 3: Wait for React to render the #qr-reader element
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // ✅ FIX 4: Now create scanner instance (element should exist)
+      html5QrRef.current = new Html5Qrcode('qr-reader');
 
       // ✅ FIX 4: Start camera with better error handling
       await html5QrRef.current.start(
