@@ -445,7 +445,7 @@ export const useInventoryStore = create<InventoryState>()(
         login: async (username, password) => {
           set({ isLoading: true, error: null });
           try {
-            const response = await api.post('/api/auth/login', { username, password });
+            const response = await api.post('/auth/login', { username, password });
             const { user, token } = response.data.data;
             localStorage.setItem('token', token);
             set({ currentUser: user, isLoading: false });
@@ -500,7 +500,7 @@ export const useInventoryStore = create<InventoryState>()(
         scanIn: async (data) => {
           set({ loading: true, error: null });
           try {
-            const response = await api.post('/api/inventory/items', data);
+            const response = await api.post('/inventory/items', data);
             const newItem = response.data.data;
             get().addItem(newItem);
             set({ loading: false });
@@ -517,7 +517,7 @@ export const useInventoryStore = create<InventoryState>()(
         fetchDeleteRequests: async () => {
           set({ loading: true });
           try {
-            const response = await api.get('/api/inventory/items?status=PENDING_DELETE');
+            const response = await api.get('/inventory/items?status=PENDING_DELETE');
             const items = response.data.data.items || [];
             set({ loading: false });
             return items;

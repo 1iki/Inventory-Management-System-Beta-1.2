@@ -25,7 +25,7 @@ const DashboardDirektur: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const response = await api.get('/api/dashboard/director/scan-out-per-customer');
+      const response = await api.get('/dashboard/director/scan-out-per-customer');
       
       if (response.data.success) {
         setScanOutData(response.data.data);

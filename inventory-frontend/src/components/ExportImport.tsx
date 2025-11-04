@@ -20,7 +20,7 @@ const ExportImport: React.FC = () => {
       setIsExporting(true);
       toast.loading('Mengekspor data ke Excel...', { id: 'export' });
 
-      const response = await api.post('/api/inventory/export-import', {
+      const response = await api.post('/inventory/export-import', {
         action: 'export',
         format: 'excel'
       }, {
@@ -51,7 +51,7 @@ const ExportImport: React.FC = () => {
       setIsExporting(true);
       toast.loading('Mengekspor data ke CSV...', { id: 'export' });
 
-      const response = await api.post('/api/inventory/export-import', {
+      const response = await api.post('/inventory/export-import', {
         action: 'export',
         format: 'csv'
       }, {
@@ -81,7 +81,7 @@ const ExportImport: React.FC = () => {
     try {
       toast.loading('Mengunduh template...', { id: 'template' });
 
-      const response = await api.get('/api/inventory/export-import', {
+      const response = await api.get('/inventory/export-import', {
         responseType: 'blob'
       });
 
@@ -161,7 +161,7 @@ const ExportImport: React.FC = () => {
 
   const processImport = async (data: any[]) => {
     try {
-      const response = await api.post('/api/inventory/export-import', {
+      const response = await api.post('/inventory/export-import', {
         action: 'import',
         data
       });

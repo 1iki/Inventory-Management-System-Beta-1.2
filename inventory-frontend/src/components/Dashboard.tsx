@@ -88,7 +88,7 @@ const Dashboard: React.FC = () => {
         console.log('🔄 Fetching accurate inventory statistics from backend...');
         
         const { api } = await import('../lib/api');
-        const response = await api.get('/api/dashboard/inventory-stats');
+        const response = await api.get('/dashboard/inventory-stats');
         
         if (response.data.success) {
           const stats = response.data.data;
@@ -140,7 +140,7 @@ const Dashboard: React.FC = () => {
           (async () => {
             try {
               const { api } = await import('../lib/api');
-              const response = await api.get('/api/inventory/items');
+              const response = await api.get('/inventory/items');
               const items = response.data.data.items || [];
               setItems(items);
               console.log(`✅ Fetched ${items.length} inventory items`);
