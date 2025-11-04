@@ -2,8 +2,15 @@
 import * as dotenv from 'dotenv';
 import path from 'path';
 
-// ✅ FORCE LOAD .env.local
-dotenv.config({ path: path.join(process.cwd(), '.env.local') });
+// ✅ Load .env.local only in non-production environments
+// In Vercel, environment variables are automatically loaded from Dashboard
+if (process.env.NODE_ENV !== 'production') {
+  const envPath = path.join(process.cwd(), '.env.local');
+  dotenv.config({ path: envPath });
+  console.log('📁 Loaded environment from .env.local');
+} else {
+  console.log('☁️ Using environment variables from deployment platform');
+}
 
 // 🔥 DEVELOPMENT ONLY: Force bypass TLS validation
 if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
@@ -23,15 +30,20 @@ function validateEnvVars() {
   const missing = requiredEnvVars.filter(key => !process.env[key]);
   
   if (missing.length > 0) {
+    console.error('❌ Missing required environment variables:', missing.join(', '));
+    console.error('📋 Current environment:', process.env.NODE_ENV);
+    console.error('🔍 Available env vars:', Object.keys(process.env).filter(k => k.includes('MONGO') || k.includes('JWT')));
+    
     throw new Error(
       `Missing required environment variables: ${missing.join(', ')}\n` +
-      'Please check your .env.local file'
+      'Please check your environment configuration'
     );
   }
   
   console.log('✅ Environment variables loaded successfully');
   console.log('📊 MONGODB_URI:', process.env.MONGODB_URI ? 'SET' : 'NOT SET');
   console.log('🔐 JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
+  console.log('🌍 NODE_ENV:', process.env.NODE_ENV);
 }
 
 // Validate on import
