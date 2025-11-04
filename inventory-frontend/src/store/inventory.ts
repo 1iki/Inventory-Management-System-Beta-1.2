@@ -469,10 +469,10 @@ export const useInventoryStore = create<InventoryState>()(
         fetchMaster: async (type) => {
           set({ loading: true, error: null });
           try {
-            const endpoint = type === 'customers' ? '/api/master/customers' :
-                           type === 'parts' ? '/api/master/parts' :
-                           type === 'suppliers' ? '/api/master/suppliers' :
-                           '/api/master/purchase-orders';
+            const endpoint = type === 'customers' ? '/master/customers' :
+                           type === 'parts' ? '/master/parts' :
+                           type === 'suppliers' ? '/master/suppliers' :
+                           '/master/purchase-orders';
             
             const response = await api.get(endpoint);
             const data = response.data.data;

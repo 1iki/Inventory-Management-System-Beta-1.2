@@ -179,7 +179,7 @@ const Dashboard: React.FC = () => {
           endDate: now.toISOString()
         });
 
-        const response = await api.get(`/api/dashboard/stats?${params}`);
+        const response = await api.get(`/dashboard/stats?${params}`);
         
         if (response.data.success) {
           const distribution = response.data.data.customerOutDistribution || [];
