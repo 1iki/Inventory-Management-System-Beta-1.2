@@ -18,10 +18,11 @@ export function middleware(request: NextRequest) {
           'http://10.0.10.141:5173'
         ];
     
-    // Check if origin matches allowed origins or is a Vercel preview deployment
+    // Check if origin matches allowed origins or is a Vercel deployment
     const isAllowed = origin && (
       allowedOrigins.includes(origin) ||
-      origin.match(/^https:\/\/inventory-frontend-[a-z0-9]+-1ikis-projects\.vercel\.app$/)
+      origin.match(/^https:\/\/inventory-frontend-[a-z0-9]+-1ikis-projects\.vercel\.app$/) ||
+      origin.match(/^https:\/\/inventory-frontend-rouge\.vercel\.app$/)
     );
 
     if (isAllowed) {
