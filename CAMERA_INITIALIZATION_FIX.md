@@ -15,20 +15,26 @@ Translation: "Every time user grants camera permission, camera doesn't activate"
 
 ### **Root Causes Identified**
 
-1. **⏱️ Timing Issue - Torch Detection Too Early**
+1. **🚨 CRITICAL: DOM Element Not Rendered Yet** ⭐ **MOST IMPORTANT**
+   - Element `<div id="qr-reader">` only rendered **AFTER** `isScanning=true`
+   - Code tried to create `new Html5Qrcode('qr-reader')` immediately
+   - React needs time to re-render after state change
+   - Result: "HTML Element with id=qr-reader not found" error
+
+2. **⏱️ Timing Issue - Torch Detection Too Early**
    - Torch capability detection executed immediately after `start()` call
    - Video element wasn't ready yet
    - `querySelector('#qr-reader video')` returned null or video track not available
 
-2. **🔄 No Retry Mechanism**
+3. **🔄 No Retry Mechanism**
    - If video track wasn't immediately available, detection failed permanently
    - No fallback or retry logic
 
-3. **📱 Camera List Not Refreshed**
+4. **📱 Camera List Not Refreshed**
    - After user granted permission for first time, camera list wasn't updated
    - Subsequent scans might fail to detect newly authorized cameras
 
-4. **💬 Poor User Feedback**
+5. **💬 Poor User Feedback**
    - No visual feedback during camera initialization
    - Error messages didn't guide user on what to do next
 
@@ -36,7 +42,28 @@ Translation: "Every time user grants camera permission, camera doesn't activate"
 
 ## ✅ SOLUTIONS IMPLEMENTED
 
-### **1. Added Loading State with Toast Notification**
+### **1. CRITICAL: Wait for DOM Render Before Creating Scanner** ⭐ **KEY FIX**
+```typescript
+// Set isScanning=true first (triggers React re-render)
+setIsScanning(true);
+
+// Add toast feedback
+toast.loading('Memulai kamera...', { id: 'camera-loading' });
+
+// ⭐ CRITICAL: Wait 100ms for React to render the #qr-reader element
+await new Promise(resolve => setTimeout(resolve, 100));
+
+// NOW create scanner instance (element exists in DOM)
+html5QrRef.current = new Html5Qrcode('qr-reader');
+```
+
+**Benefits**:
+- Ensures DOM element exists before Html5Qrcode initialization
+- Prevents "HTML Element with id=qr-reader not found" error
+- 100ms is sufficient for React to complete re-render
+- Critical fix that makes entire scanner feature work
+
+### **2. Added Loading State with Toast Notification**
 ```typescript
 // Before starting camera
 toast.loading('Memulai kamera...', { id: 'camera-loading' });
@@ -289,14 +316,15 @@ commit 82a204f
 ```
 
 ### **Vercel Deployment**
-- **URL**: https://inventory-frontend-pio6f6104-1ikis-projects.vercel.app
+- **Latest URL**: https://inventory-frontend-7btas8u43-1ikis-projects.vercel.app ⭐ **CURRENT**
+- **Previous URL**: https://inventory-frontend-pio6f6104-1ikis-projects.vercel.app (had DOM timing issue)
 - **Status**: ✅ Production
-- **Build Time**: ~2 seconds
+- **Build Time**: ~3 seconds
 - **Region**: sin1 (Singapore)
 
 ### **Testing URL**
 ```
-Frontend: https://inventory-frontend-pio6f6104-1ikis-projects.vercel.app
+Frontend: https://inventory-frontend-7btas8u43-1ikis-projects.vercel.app ⭐
 Backend: https://inventory-backend-1ewn34ttu-1ikis-projects.vercel.app
 
 Test Credentials:
