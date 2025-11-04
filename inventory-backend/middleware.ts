@@ -3,31 +3,28 @@ import { NextRequest, NextResponse } from 'next/server';
 export function middleware(request: NextRequest) {
   // Handle CORS for all API routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
-    const response = NextResponse.next();
-    
     const origin = request.headers.get('origin');
     
-    // ✅ FIXED: Use environment variable or default to localhost for development
-    // Accept all inventory-frontend-*.vercel.app subdomains for preview deployments
-    const allowedOrigins = process.env.CORS_ORIGINS 
-      ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
-      : [
-          'http://localhost:5173',
-          'http://localhost:5174',
-          'http://localhost:3000',
-          'http://10.0.10.141:5173'
-        ];
+    // ✅ CRITICAL: Check if origin is allowed BEFORE creating response
+    // This prevents multiple values in Access-Control-Allow-Origin header
+    const isVercelPreview = origin?.match(/^https:\/\/inventory-frontend-[a-z0-9]+-1ikis-projects\.vercel\.app$/);
+    const isVercelProduction = origin?.match(/^https:\/\/inventory-frontend-rouge\.vercel\.app$/);
+    const isLocalhost = origin?.startsWith('http://localhost:') || origin?.startsWith('http://10.0.10.');
     
-    // Check if origin matches allowed origins or is a Vercel deployment
-    const isAllowed = origin && (
-      allowedOrigins.includes(origin) ||
-      origin.match(/^https:\/\/inventory-frontend-[a-z0-9]+-1ikis-projects\.vercel\.app$/) ||
-      origin.match(/^https:\/\/inventory-frontend-rouge\.vercel\.app$/)
-    );
-
-    if (isAllowed) {
-      response.headers.set('Access-Control-Allow-Origin', origin);
+    // Only allow ONE origin at a time
+    const isAllowed = isVercelPreview || isVercelProduction || isLocalhost;
+    
+    if (!isAllowed) {
+      // Reject requests from disallowed origins
+      return new Response('CORS not allowed', { status: 403 });
     }
+
+    const response = NextResponse.next();
+    
+    // ✅ CRITICAL: Set SINGLE origin value (the one from the request)
+    response.headers.set('Access-Control-Allow-Origin', origin!);
+    response.headers.delete('Access-Control-Allow-Origin'); // Clear any existing
+    response.headers.set('Access-Control-Allow-Origin', origin!); // Set only once
 
     response.headers.set('Access-Control-Allow-Credentials', 'true');
     response.headers.set(
