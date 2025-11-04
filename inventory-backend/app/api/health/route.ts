@@ -7,6 +7,16 @@ export async function GET(req: NextRequest) {
   const startTime = Date.now();
   
   try {
+    // ✅ FIX: Ensure database connection before health check
+    // This is important for serverless cold starts
+    try {
+      const { connectDB } = await import('@/lib/db');
+      await connectDB();
+    } catch (error) {
+      console.log('Database connection attempt failed:', error);
+      // Continue with health check even if connection fails
+    }
+    
     // Collect system health metrics
     const dbHealth = await checkDBHealth();
     const memoryUsage = process.memoryUsage();
