@@ -5,11 +5,16 @@ export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const origin = request.headers.get('origin');
     
-    // ✅ CRITICAL: Check if origin is allowed BEFORE creating response
+    // ✅ If no origin header (direct API access, health checks, etc), allow it
+    if (!origin) {
+      return NextResponse.next();
+    }
+    
+    // ✅ CRITICAL: Check if origin is allowed
     // This prevents multiple values in Access-Control-Allow-Origin header
-    const isVercelPreview = origin?.match(/^https:\/\/inventory-frontend-[a-z0-9]+-1ikis-projects\.vercel\.app$/);
-    const isVercelProduction = origin?.match(/^https:\/\/inventory-frontend-rouge\.vercel\.app$/);
-    const isLocalhost = origin?.startsWith('http://localhost:') || origin?.startsWith('http://10.0.10.');
+    const isVercelPreview = origin.match(/^https:\/\/inventory-frontend-[a-z0-9]+-1ikis-projects\.vercel\.app$/);
+    const isVercelProduction = origin.match(/^https:\/\/inventory-frontend-rouge\.vercel\.app$/);
+    const isLocalhost = origin.startsWith('http://localhost:') || origin.startsWith('http://10.0.10.');
     
     // Only allow ONE origin at a time
     const isAllowed = isVercelPreview || isVercelProduction || isLocalhost;
@@ -22,9 +27,7 @@ export function middleware(request: NextRequest) {
     const response = NextResponse.next();
     
     // ✅ CRITICAL: Set SINGLE origin value (the one from the request)
-    response.headers.set('Access-Control-Allow-Origin', origin!);
-    response.headers.delete('Access-Control-Allow-Origin'); // Clear any existing
-    response.headers.set('Access-Control-Allow-Origin', origin!); // Set only once
+    response.headers.set('Access-Control-Allow-Origin', origin);
 
     response.headers.set('Access-Control-Allow-Credentials', 'true');
     response.headers.set(
