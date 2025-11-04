@@ -138,18 +138,28 @@ const ScanOut: React.FC = () => {
     }
 
     try {
+      // Clean up any existing scanner instance
       if (html5QrRef.current) {
         await html5QrRef.current.stop();
         await html5QrRef.current.clear();
         html5QrRef.current = null;
       }
 
-      html5QrRef.current = new Html5Qrcode('qr-reader');
-      setIsScanning(true);
+      // Reset states
       hasScannedRef.current = false;
       setCanTorch(false);
       setTorchOn(false);
 
+      // ✅ FIX 1: Create scanner instance
+      html5QrRef.current = new Html5Qrcode('qr-reader');
+
+      // ✅ FIX 2: Set isScanning BEFORE starting camera (for UI feedback)
+      setIsScanning(true);
+
+      // ✅ FIX 3: Add toast to inform user
+      toast.loading('Memulai kamera...', { id: 'camera-loading' });
+
+      // ✅ FIX 4: Start camera with better error handling
       await html5QrRef.current.start(
         selectedCameraId ? { deviceId: { exact: selectedCameraId } } : { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
@@ -163,27 +173,81 @@ const ScanOut: React.FC = () => {
         () => { /* ignore frame decode errors */ }
       );
 
-      // Detect torch capability
-      const videoEl = document.querySelector('#qr-reader video') as HTMLVideoElement | null;
-      const track = videoEl && (videoEl.srcObject as MediaStream | null)?.getVideoTracks()?.[0];
-      if (track) {
-        videoTrackRef.current = track;
-        const getCaps = (track as any).getCapabilities?.bind(track);
-        const caps = getCaps ? getCaps() : undefined;
-        if (caps && Object.prototype.hasOwnProperty.call(caps, 'torch')) {
-          setCanTorch(true);
-          try { await (track as any).applyConstraints({ advanced: [{ torch: false }] }); } catch {}
+      // ✅ FIX 5: Dismiss loading toast after camera started
+      toast.success('Kamera siap!', { id: 'camera-loading', duration: 2000 });
+
+      // ✅ FIX 6: Wait for video element to be ready before detecting torch
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // ✅ FIX 7: Detect torch capability with retry
+      let retries = 0;
+      const maxRetries = 5;
+      while (retries < maxRetries) {
+        const videoEl = document.querySelector('#qr-reader video') as HTMLVideoElement | null;
+        const track = videoEl && (videoEl.srcObject as MediaStream | null)?.getVideoTracks()?.[0];
+        
+        if (track) {
+          videoTrackRef.current = track;
+          const getCaps = (track as any).getCapabilities?.bind(track);
+          const caps = getCaps ? getCaps() : undefined;
+          
+          if (caps && Object.prototype.hasOwnProperty.call(caps, 'torch')) {
+            setCanTorch(true);
+            try { 
+              await (track as any).applyConstraints({ advanced: [{ torch: false }] }); 
+            } catch (e) {
+              console.warn('Failed to apply initial torch constraint:', e);
+            }
+          }
+          break; // Found track, exit retry loop
         }
+        
+        // Wait before retry
+        retries++;
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
+
     } catch (err: unknown) {
+      // ✅ FIX 8: Ensure isScanning is set to false on error
       setIsScanning(false);
+      toast.dismiss('camera-loading');
+      
       const msg = (err as Error)?.message || String(err);
+      
       if (/NotAllowedError|Permission|denied/i.test(msg)) {
-        setFeedback({ type: 'error', title: 'Izin Kamera Ditolak', message: 'Berikan izin kamera pada browser untuk melanjutkan pemindaian.' });
+        setFeedback({ 
+          type: 'error', 
+          title: 'Izin Kamera Ditolak', 
+          message: 'Berikan izin kamera pada browser untuk melanjutkan pemindaian. Setelah memberikan izin, klik tombol "Mulai Scan QR Code" lagi.' 
+        });
+        toast.error('Izin kamera ditolak. Berikan izin lalu coba lagi.');
+        
+        // ✅ FIX 9: Refresh camera list after permission granted
+        setTimeout(() => {
+          Html5Qrcode.getCameras().then((devices) => {
+            const mapped = devices.map(d => ({ id: d.id, label: d.label || 'Kamera' }));
+            setCameras(mapped);
+            const back = mapped.find(d => /back|rear|environment/i.test(d.label));
+            setSelectedCameraId((back || mapped[0])?.id || null);
+          }).catch(() => {
+            console.warn('Failed to refresh camera list');
+          });
+        }, 1000);
+        
       } else if (/NotFoundError|no camera|no input device/i.test(msg)) {
-        setFeedback({ type: 'error', title: 'Kamera Tidak Ditemukan', message: 'Tidak ada perangkat kamera yang tersedia.' });
+        setFeedback({ 
+          type: 'error', 
+          title: 'Kamera Tidak Ditemukan', 
+          message: 'Tidak ada perangkat kamera yang tersedia. Pastikan perangkat Anda memiliki kamera dan izin telah diberikan.' 
+        });
+        toast.error('Kamera tidak ditemukan');
       } else {
-        setFeedback({ type: 'error', title: 'Gagal Memulai Kamera', message: 'Terjadi kesalahan saat mengakses kamera. Coba ulang atau ganti perangkat.' });
+        setFeedback({ 
+          type: 'error', 
+          title: 'Gagal Memulai Kamera', 
+          message: 'Terjadi kesalahan saat mengakses kamera. Coba ulang atau ganti perangkat.\n\nDetail: ' + msg 
+        });
+        toast.error('Gagal memulai kamera');
       }
     }
   };
