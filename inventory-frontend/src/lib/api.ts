@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 // ✅ UPDATED: Use latest backend deployment with CORS fix
 const apiUrl = import.meta.env.VITE_API_BASE_URL 
   || (import.meta.env.PROD 
-      ? 'https://inventory-backend-o0kh4tgv7-1ikis-projects.vercel.app'
+      ? 'https://inventory-backend-1ewn34ttu-1ikis-projects.vercel.app'
       : 'http://localhost:3001');
 
 const baseURL = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`;
